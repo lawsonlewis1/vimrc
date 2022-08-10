@@ -1,15 +1,8 @@
 set nocompatible              " be iMproved, required
 filetype off                  " required
 
-" Dependencies
-" fixing and linting:
-" node, npm for installing prettier and cspell
-" prettier for html, cs, js fixing - npm install prettier --location=global
-" cspell for spell checking - npm install cspell --location=global
-" autopep8 for python fixing - pip install autopep8
 
-
-"Plugin declarations {{{
+"Vundle plugin declarations {{{
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
@@ -57,8 +50,31 @@ filetype plugin indent on    " required
 let mapleader=" "
 nnoremap <leader>w :w<cr>
 nnoremap <up> :<up>
-nnoremap <leader>q :bd<cr>
-nnoremap <leader>b :bn<cr>
+" functions for swapping buffers that avoid switching to the integrated
+" terminal
+function! NextBuffer()
+        let all_buffers = range(bufnr(), bufnr("$"))
+        for i in all_buffers
+                if buflisted(i) && i != bufnr() && getbufvar(i, "&buftype") != "terminal"
+                        execute i .. "b"
+                        return
+                endif
+        endfor
+        for j in range(1, bufnr())
+                if buflisted(j) && j != bufnr() && getbufvar(j, "&buftype") != "terminal"
+                        execute j .. "b"
+                        return
+                else
+                        echo "no buffer to switch too"
+                endif
+        endfor
+endfunction
+function KillBuffer()
+        let buffer_to_delete = bufnr()
+        execute "call NextBuffer()\|"..buffer_to_delete.."bd"
+endfunction
+nnoremap <C-b> :call NextBuffer()<cr>
+nnoremap <C-q> :call KillBuffer()<cr>
 nnoremap <leader>c :close<cr>
 nnoremap <leader>l :noh<cr>
 nnoremap <leader>t :terminal<cr>
@@ -67,11 +83,13 @@ nnoremap <C-F5> :VimspectorReset<cr>
 nnoremap <leader>n :NERDTreeFocus<CR>
 nnoremap <C-n> :NERDTreeToggle<CR>
 nnoremap <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
+tmap <C-q> <C-w>:q<cr>
+
+" easy split navigation
 nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
-tmap <C-q> <C-w>:q<cr>
 "}}}
 
 "colorscheme config {{{
@@ -107,6 +125,7 @@ let g:vimspector_enable_mappings='HUMAN'
 let g:ale_sign_column_always = 1
 let g:ale_fix_on_save = 1
 let g:ale_linters_explicit = 1
+let g:ale_r_lintr_options="linters_with_defaults()"
 
 let g:ale_linters = {
 \   'vim': ['vimls'],
@@ -139,7 +158,7 @@ if 'VIRTUAL_ENV' in os.environ:
 EOF
 " }}}
 
-"vim options {{{
+"standard vim options {{{
 set mouse=a
 set termwinsize=10x0
 set cursorline
@@ -176,7 +195,9 @@ augroup py_files
   autocmd!
   autocmd BufNewFile,BufRead *.py setlocal shiftwidth=4
   autocmd BufNewFile,BufRead *.py setlocal softtabstop=4
-  autocmd BufNewFile,BufRead *.py nnoremap <buffer> <leader>t :terminal<cr>python3<cr>
+  autocmd BufNewFile,BufRead *.py nnoremap <buffer> <leader>t :terminal<cr>python3<cr><C-w>k
+  autocmd BufNewFile,BufRead *.py nmap <buffer> <leader>r <Plug>(SendToTermLine)
+  autocmd BufNewFile,BufRead *.py vmap <buffer> <leader>r <Plug>(SendToTerm)
 augroup END
 
 augroup r_files
