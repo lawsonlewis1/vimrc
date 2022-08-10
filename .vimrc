@@ -1,6 +1,9 @@
 set nocompatible              " be iMproved, required
 filetype off                  " required
 
+" Enable completion where available.
+" This setting must be set before ALE is loaded.
+let g:ale_completion_enabled = 1
 
 "Vundle plugin declarations {{{
 " set the runtime path to include Vundle and initialize
@@ -16,7 +19,6 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'preservim/nerdtree'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-Plugin 'Valloric/YouCompleteMe'
 Plugin 'tpope/vim-fugitive'
 Plugin 'dense-analysis/ale'
 Plugin 'mattn/emmet-vim'
@@ -48,8 +50,9 @@ filetype plugin indent on    " required
 
 " key mappings {{{
 let mapleader=" "
-nnoremap <C-s> :w<cr> " standard saving shortcut
-nnoremap <up> :<up> " use the up arrow to quickly navigate Ex cmds
+nnoremap <C-s> :w<cr>
+inoremap <C-s> <esc>:w<cr>a
+nnoremap <up> :<up>
 
 " functions for switching buffers that avoid switching to the integrated
 " terminal if you have it open
@@ -72,30 +75,50 @@ function! NextBuffer()
 endfunction
 
 function KillBuffer()
+        let buftp = getbufvar(bufnr(), "&buftype")
         if len(getbufinfo({'buflisted':1})) == 1
                 execute "q"
+        elseif buftp == "help" || buftp == "nofile"
+                execute "close"
         else
-                let buffer_to_delete = bufnr()
-                execute "call NextBuffer()\|"..buffer_to_delete.."bd"
+                execute "call NextBuffer()\|"..bufnr().."bd"
         endif
+endfunction
+
+function! OpenTerm()
+        for i in range(1, bufnr("$"))
+                if getbufvar(i, "&buftype") == "terminal"
+                        let bufinfo = getbufinfo(i)
+                        if get(bufinfo, 'hidden').hidden == 1
+                                execute i .. "sb"
+                                execute "res 10"
+                                return
+                        else
+                                execute "wincmd j"
+                        endif
+                        return
+                endif
+        endfor
+        execute "term"
 endfunction
 
 nnoremap <C-n> :call NextBuffer()<cr>
 nnoremap <C-q> :call KillBuffer()<cr>
-tmap <C-q> <C-w>:q<cr> " for easily killing terminal buffers
+tmap <C-q> <C-w>:q<cr>
 nnoremap <leader>l :noh<cr>
-nnoremap <leader>t :terminal<cr>
+nnoremap <leader>t :call OpenTerm()<cr>
 nnoremap <leader>db :VimspectorBreakpoints<cr>
 nnoremap <C-F5> :VimspectorReset<cr>
-nnoremap <leader>o :NERDTreeFocus<CR>
-nnoremap <C-o> :NERDTreeToggle<CR>
-nnoremap <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
+nnoremap <leader>o :NERDTreeFocus<cr>
+nnoremap <C-o> :NERDTreeToggle<cr>
+nnoremap <leader>h :ALEHover<cr>
+nnoremap <F2> :ALERename<cr>
 
 " easier split navigation
-nnoremap <C-J> <C-W><C-J>
-nnoremap <C-K> <C-W><C-K>
-nnoremap <C-L> <C-W><C-L>
-nnoremap <C-H> <C-W><C-H>
+nnoremap <C-j> <C-w><C-j>
+nnoremap <C-k> <C-w><C-k>
+nnoremap <C-l> <C-w><C-l>
+nnoremap <C-h> <C-w><C-h>
 "}}}
 
 "colorscheme config {{{
@@ -116,18 +139,15 @@ let g:airline#extensions#tabline#enabled = 1 " Enable the list of buffers
 let g:ycm_autoclose_preview_window_after_completion=1
 
 "NERDTree config
-augroup nerd_tree
-        autocmd!
-
-        " If another buffer tries to replace NERDTree, put it in the other window, and bring back NERDTree.
-        autocmd BufEnter * if bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_tree_\d\+' && winnr('$') > 1 |
+" If another buffer tries to replace NERDTree, put it in the other window, and bring back NERDTree.
+autocmd BufEnter * if bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_tree_\d\+' && winnr('$') > 1 |
                                 \ let buf=bufnr() | buffer# | execute "normal! \<C-W>w" | execute 'buffer'.buf | endif
-augroup END
 
 "Vimspector config
 let g:vimspector_enable_mappings='HUMAN'
 
 "ALE config"
+set omnifunc=ale#completion#OmniFunc
 let g:ale_sign_column_always = 1
 let g:ale_fix_on_save = 1
 let g:ale_linters_explicit = 1
@@ -180,6 +200,7 @@ set encoding=utf-8
 set foldcolumn=1
 set ruler "always show cursor position
 set hlsearch "highlight all search results
+execute "noh"
 set incsearch "incremental searching
 set wildmenu "show vim cmd suggestions when i press tab
 set showcmd "show partial commands
@@ -206,6 +227,8 @@ augroup py_files
   autocmd BufNewFile,BufRead *.py nnoremap <buffer> <leader>t :terminal<cr>python3<cr><C-w>k
   autocmd BufNewFile,BufRead *.py nmap <buffer> <leader>r <Plug>(SendToTermLine)
   autocmd BufNewFile,BufRead *.py vmap <buffer> <leader>r <Plug>(SendToTerm)
+  autocmd BufNewFile,BufRead *.py <buffer> <leader>r <Plug>(SendToTermLine)
+  autocmd BufNewFile,BufRead *.py <buffer> <leader>r <Plug>(SendToTerm)
 augroup END
 
 augroup r_files
