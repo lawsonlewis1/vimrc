@@ -31,6 +31,7 @@ Plugin 'tpope/vim-commentary'
 Plugin 'Yggdroot/indentLine'
 Plugin 'ryanoasis/vim-devicons'
 Plugin 'habamax/vim-sendtoterm'
+Plugin 'jiangmiao/auto-pairs'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -48,12 +49,7 @@ filetype plugin indent on    " required
 " Put your non-Plugin stuff after this line
 " }}}
 
-" key mappings {{{
-let mapleader=" "
-nnoremap <C-s> :w<cr>
-inoremap <C-s> <esc>:w<cr>a
-nnoremap <up> :<up>
-
+" custom functions {{{
 " functions for switching buffers that avoid switching to the integrated
 " terminal if you have it open
 function! NextBuffer()
@@ -101,7 +97,13 @@ function! OpenTerm()
         endfor
         execute "term"
 endfunction
+" }}}
 
+" custom key mappings {{{
+let mapleader=" "
+nnoremap <C-s> :w<cr>
+inoremap <C-s> <esc>:w<cr>a
+nnoremap <up> :<up>
 nnoremap <C-n> :call NextBuffer()<cr>
 nnoremap <C-q> :call KillBuffer()<cr>
 tmap <C-q> <C-w>:q<cr>
@@ -113,8 +115,6 @@ nnoremap <leader>o :NERDTreeFocus<cr>
 nnoremap <C-o> :NERDTreeToggle<cr>
 nnoremap <leader>h :ALEHover<cr>
 nnoremap <F2> :ALERename<cr>
-
-" easier split navigation
 nnoremap <C-j> <C-w><C-j>
 nnoremap <C-k> <C-w><C-k>
 nnoremap <C-l> <C-w><C-l>
