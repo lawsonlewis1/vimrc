@@ -48,10 +48,11 @@ filetype plugin indent on    " required
 
 " key mappings {{{
 let mapleader=" "
-nnoremap <leader>w :w<cr>
-nnoremap <up> :<up>
-" functions for swapping buffers that avoid switching to the integrated
-" terminal
+nnoremap <C-s> :w<cr> " standard saving shortcut
+nnoremap <up> :<up> " use the up arrow to quickly navigate Ex cmds
+
+" functions for switching buffers that avoid switching to the integrated
+" terminal if you have it open
 function! NextBuffer()
         let all_buffers = range(bufnr(), bufnr("$"))
         for i in all_buffers
@@ -69,23 +70,28 @@ function! NextBuffer()
                 endif
         endfor
 endfunction
+
 function KillBuffer()
-        let buffer_to_delete = bufnr()
-        execute "call NextBuffer()\|"..buffer_to_delete.."bd"
+        if len(getbufinfo({'buflisted':1})) == 1
+                execute "q"
+        else
+                let buffer_to_delete = bufnr()
+                execute "call NextBuffer()\|"..buffer_to_delete.."bd"
+        endif
 endfunction
-nnoremap <C-b> :call NextBuffer()<cr>
+
+nnoremap <C-n> :call NextBuffer()<cr>
 nnoremap <C-q> :call KillBuffer()<cr>
-nnoremap <leader>c :close<cr>
+tmap <C-q> <C-w>:q<cr> " for easily killing terminal buffers
 nnoremap <leader>l :noh<cr>
 nnoremap <leader>t :terminal<cr>
 nnoremap <leader>db :VimspectorBreakpoints<cr>
 nnoremap <C-F5> :VimspectorReset<cr>
-nnoremap <leader>n :NERDTreeFocus<CR>
-nnoremap <C-n> :NERDTreeToggle<CR>
+nnoremap <leader>o :NERDTreeFocus<CR>
+nnoremap <C-o> :NERDTreeToggle<CR>
 nnoremap <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
-tmap <C-q> <C-w>:q<cr>
 
-" easy split navigation
+" easier split navigation
 nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
@@ -127,6 +133,7 @@ let g:ale_fix_on_save = 1
 let g:ale_linters_explicit = 1
 let g:ale_r_lintr_options="linters_with_defaults()"
 
+" refer to ALE documentation for installation of below linters/fixers
 let g:ale_linters = {
 \   'vim': ['vimls'],
 \   'python': ['pylsp', 'cspell'],
@@ -148,6 +155,7 @@ let g:ale_fixers = {
 " }}}
 
 "python venv activation {{{
+" if vim was launched from an active python venv, use it
 python3 << EOF
 import os
 import sys
@@ -159,10 +167,10 @@ EOF
 " }}}
 
 "standard vim options {{{
-set mouse=a
-set termwinsize=10x0
-set cursorline
-set updatetime=100
+set mouse=a "allow mouse input wherever possible
+set termwinsize=10x0 "set the initial size of new terminal windows to 10 rows
+set cursorline "highlight the current row
+set updatetime=100 "reduced the updatetime for improved responsiveness
 set confirm "confirm saving instead of failing action
 set splitbelow "new splits go on the bottom
 set splitright "new splits go on the right
@@ -209,6 +217,7 @@ augroup r_files
         autocmd BufNewFile,BufRead *.r nmap <buffer> <leader>r <Plug>(SendToTermLine)
         autocmd BufNewFile,BufRead *.r vmap <buffer> <leader>r <Plug>(SendToTerm)
 augroup END
+
 augroup vim_files
     autocmd!
     autocmd FileType vim setlocal foldmethod=marker
