@@ -1,7 +1,8 @@
 # vimrc
-My vimrc file
-Feel free to use it if you want
+My vimrc file, use it if you want :)
 
-New to vim at this point. I will use it for python web development if it all goes well.
+I'm only new to vim but I plan to use it for writing Python and R code.
 
-Most the ideas were taken initially from the excellent RealPython article about vim which can be found here[https://realpython.com/vim-and-python-a-match-made-in-heaven/]
+Some ideas were taken from the excellent RealPython article about vim which can be found here[https://realpython.com/vim-and-python-a-match-made-in-heaven/]
+
+Mostly i want it to execute python and R code line by line which it does. and to provide intellisense like completion, which it almost does with ALE.
